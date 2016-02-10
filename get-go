@@ -24,7 +24,8 @@ SOFTWARE.'
 
 GOVERSION=$1
 FNAME=go$GOVERSION.linux-amd64.tar.gz
-ONAME=.cache/$FNAME
+CACHEDIR=~/.getgo
+ONAME=$CACHEDIR/$FNAME
 URL=https://storage.googleapis.com/golang/$FNAME
 DNAME=/usr/local/go$GOVERSION/
 
@@ -35,13 +36,17 @@ if [ -z "$GOVERSION" ]; then
 fi
 
 # make sure the cache dir exists
-[ -d .cache ] || mkdir .cache
+[ -d $CACHEDIR ] || mkdir -p $CACHEDIR &> /dev/null
 
 # try to download straight into the cache dir
 [ -f $ONAME ] || curl --fail -o $ONAME $URL || exit $?
 
-# this assumes the tarball has a root directory which needs removing
-[ -d $DNAME ] || tar xzf $FNAME -C $DNAME --strip-components=1
+# if the dir's there it's assumed that it's all intact
+if [ ! -d $DNAME ]; then
+	mkdir -p $DNAME
+	# this assumes the tarball has a root directory which needs removing
+	tar xzf $ONAME -C $DNAME --strip-components=1
+fi
 
 # the distributions in the tarballs expect to be
 # installed here so you don't need to set GOROOT
